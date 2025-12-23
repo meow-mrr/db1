@@ -1,0 +1,95 @@
+USE master;
+GO
+
+IF DB_ID('College') IS NOT NULL
+    DROP DATABASE College;
+GO
+
+CREATE DATABASE College
+ON PRIMARY
+(
+    NAME = College_Data,
+    FILENAME = 'C:\SQLData\College_Data.mdf',
+    SIZE = 5MB,
+    FILEGROWTH = 1MB
+)
+LOG ON
+(
+    NAME = College_Log,
+    FILENAME = 'C:\SQLData\College_Log.ldf',
+    SIZE = 2MB
+);
+GO
+
+SELECT name FROM sys.databases WHERE name = 'College';
+GO
+
+USE College;
+GO
+
+CREATE TABLE Zachet
+(
+    StudNo INT PRIMARY KEY,
+    FIO NVARCHAR(100) NULL,
+    PM01 INT NULL,
+    PM02 INT NULL
+);
+GO
+
+CREATE PROCEDURE Stud
+    @StudNo INT,
+    @FIO NVARCHAR(100),
+    @PM01 INT,
+    @PM02 INT
+AS
+BEGIN
+    INSERT INTO Zachet VALUES (@StudNo, @FIO, @PM01, @PM02);
+END;
+GO
+
+EXEC Stud 1, N'Иванов Иван', 5, 5;
+EXEC Stud 2, N'Петров Петр', 4, 5;
+EXEC Stud 3, N'Сидоров Алексей', 5, 5;
+EXEC Stud 4, N'Кузнецов Максим', 3, 4;
+EXEC Stud 5, N'Орлов Денис', 5, 5;
+GO
+
+SELECT * FROM Zachet;
+GO
+
+CREATE VIEW View1
+AS
+SELECT * FROM Zachet
+WHERE PM01 = 5 AND PM02 = 5;
+GO
+
+CREATE ROLE Teacher;
+GO
+
+CREATE LOGIN Prepod1 WITH PASSWORD = 'Pr123';
+CREATE LOGIN Prepod2 WITH PASSWORD = 'Pr456';
+GO
+
+CREATE USER Prepod1 FOR LOGIN Prepod1;
+CREATE USER Prepod2 FOR LOGIN Prepod2;
+GO
+
+EXEC sp_addrolemember 'Teacher', 'Prepod1';
+GO
+
+GRANT SELECT, UPDATE ON Zachet TO Teacher;
+GRANT SELECT ON View1 TO Prepod2;
+GRANT EXECUTE ON Stud TO Prepod2;
+GO
+
+EXEC sp_helprotect NULL, 'Zachet';
+GO
+
+EXEC sp_addumpdevice 'disk', 'Ust402-1', 'C:\SQLBackup\College.bak';
+GO
+
+BACKUP DATABASE College TO Ust402-1;
+GO
+
+EXEC sp_helpdb College;
+GO
